@@ -4,14 +4,15 @@ function strObj(x){return Object.prototype.toString.call(x)};
 
 /*
 Objects are aggregations of properties. A property can reference an object or a primitive.
-Primitives are values, they have no properties:
-In JavaScript there are 5 primitive types: undefined, null, boolean, string, number; Everything else is an object
+Primitives are values, they have no properties.In JavaScript there are 5 primitive types:
+undefined, null, boolean, string, number... Everything else is an object!
 
  undefined
  null
  boolean
  string
  number
++
  global
  date
  error
@@ -21,7 +22,7 @@ In JavaScript there are 5 primitive types: undefined, null, boolean, string, num
  regexp
  xmlhttprequest
 
-originalraw://.match(/^\[object\s(.+)\]$/)[1]
+alternate pattern://.match(/^\[object\s(.+)\]$/)[1]
 function typeOf(x){return Object.prototype.toString.call(x).slice(8,-1).toLowerCase();};
 function typeOf(x){return strObj(x).slice(8,-1).toLowerCase()};
 */
@@ -32,9 +33,8 @@ function rawObj(o){return Object.create(null,o||{})};
 
 function kindOf(x){
 	var s=strObj(x).slice(8,-1).toLowerCase(),o=function(v){return{configurable:false,writable:false,value:v}};
-	return rawObj({type:o(s),isPrimitive:o(s==="null"||!/(object|function)/.test(s))});
+	return rawObj({type:o(s),isPrimitive:o(x==null||/string|number|boolean|null|undefined/.test(s))});
 };
-
 
 
 
@@ -78,21 +78,17 @@ function Test(a,b){
 	b.forEach(function(x){
 		var k=kindOf(x),t=k.type;
 		typesfound[t]=t;
-		o.log("typekind:",t,"typeof is "+typeof(x),"..isPrimitive?",k.isPrimitive);
+		o.log("typekind:",t,"typeof is '"+typeof(x),"'..isPrimitive?",k.isPrimitive);
 	});
 	o.groupEnd();
 };
-//=================================================================================================================================
-var indefinito,
-Empty_arr=[],Simple_arr=[1,2,3],Complex_arr=[[1,2],[3,4]],
-Empty_obj={},Simple_obj ={a: 1,b: 2},Complex_obj={a:{b: 1}};
-
-
-
+//===================================================================================================================================
+var indefinito,Empty_arr=[],Simple_arr=[1,2,3],Complex_arr=[[1,2],[3,4]],Empty_obj={},Simple_obj ={a: 1,b: 2},Complex_obj={a:{b: 1}};
 
 
 Test('#Undefined',[undefined,void(0),indefinito]);
 //all: typekind: undefined typeof is undefined ..isPrimitive? true
+
 
 
 Test('#Strings',[
@@ -111,7 +107,6 @@ Test('#Strings',[
 
 
 
-
 Test('#Strings-Obj',[
 	new String(),
 	new String(""),new String("abc"),
@@ -122,6 +117,8 @@ Test('#Strings-Obj',[
 	new String(undefined),new String(indefinito),new String(Object),new String(String)
 ]);
 //all: typekind: string typeof is object ..isPrimitive? true
+
+
 
 Test('#Numbers',[
 	0,1,666.0,3.14,
@@ -138,7 +135,6 @@ Test('#Numbers',[
 ]);
 //all: typekind: number typeof is number ..isPrimitive? true
 
-
 Test('#SpecialNumbers',[
 	Number(Empty_arr),//0
 	Infinity,//Infinity
@@ -146,7 +142,6 @@ Test('#SpecialNumbers',[
 	Number(undefined),Number(indefinito),Number(Object),Number(Number)//NaN
 ]);
 //all: typekind: number typeof is number ..isPrimitive? true
-
 
 Test('#Numbers-Obj',[
 	new Number(),
@@ -160,12 +155,12 @@ Test('#Numbers-Obj',[
 //all: typekind: number typeof is object ..isPrimitive? true
 
 
+
 Test('#Booleans',[
 	true,Boolean("abc"),Boolean(true),Boolean(1),Boolean(Object),Boolean(Boolean),Boolean(Empty_arr),Boolean(Simple_arr),Boolean(Empty_obj),Boolean(Simple_obj),//true
 	false,Boolean(),Boolean(""),Boolean(false),Boolean(0),Boolean(undefined),Boolean(indefinito)//false
 ]);
 //all: typekind: boolean typeof is boolean ..isPrimitive? true
-
 
 Test('#Booleans-Obj',[
 	new Boolean(),
@@ -181,14 +176,13 @@ Test('#Booleans-Obj',[
 
 
 Test('#Functions',[
-function(){},//function (){}
-function pippo(){},//function pippo(){}
-Function("a","b","return a + b"),//function anonymous(a,b
-Function(""),//function anonymous() {
-Function()//function anonymous() {
+	function(){},//function (){}
+	function pippo(){},//function pippo(){}
+	Function("a","b","return a + b"),//function anonymous(a,b
+	Function(""),//function anonymous() {
+	Function()//function anonymous() {
 ]);
 //all: typekind: function typeof is function ..isPrimitive? false
-
 
 Test('#FunctionsNative ',[Math.sin,isNaN,Date,Object,Function,]);
 //all: typekind: function typeof is function ..isPrimitive? false
@@ -201,21 +195,23 @@ function Function() { [native code] }
 */
 
 Test('#Functions-Obj',[
-new Function("a","b","return a + b"),//function anonymous(a,b
-new Function(""),new Function()//function anonymous() {
+	new Function("a","b","return a + b"),//function anonymous(a,b
+	new Function(""),new Function()//function anonymous() {
 ]);
 //all: typekind: function typeof is function ..isPrimitive? false
 
 
-Test('#Rgxs',[/(zzz)/,/(\b)/gi]);
-//all: typekind: regexp typeof is object ..isPrimitive? true
 
+
+Test('#Rgxs',[/(zzz)/,/(\b)/gi]);
+//all: typekind: regexp typeof is object ..isPrimitive? false
 
 Test('#Rgxs-Obj',[
 	new RegExp(),//\/(?:)/
 	new RegExp("(\w)","i")//\/(w)/i
 ]);
-//all: typekind: regexp typeof is object ..isPrimitive? true
+//all: typekind: regexp typeof is object ..isPrimitive? false
+
 
 
 Test('#Dates',[/*All2String: "Sun Apr 20 2014 18:18:20 GMT+0200 (W. Europe Daylight Time)"*/
@@ -227,7 +223,6 @@ Test('#Dates',[/*All2String: "Sun Apr 20 2014 18:18:20 GMT+0200 (W. Europe Dayli
 ]);
 //all:typekind: string typeof is string ..isPrimitive? true
 
-
 Test('#Dates-Obj',[
 	new Date(""),//Invalid Date
 	new Date(),//Sun Apr 20 2014 18:18:20 GMT+0200 (W. Europe Daylight Time)
@@ -237,7 +232,7 @@ Test('#Dates-Obj',[
 	new Date(false),new Date(0),new Date(true),new Date(1),//Thu Jan 01 1970 01:00:00 GMT+0100 (W. Europe Standard Time)
 	new Date(98,1)//Sun Feb 01 1998 00:00:00 GMT+0100 (W. Europe Standard Time)
 ]);
-//all:typekind: date typeof is object ..isPrimitive? true
+//all:typekind: date typeof is object ..isPrimitive? false
 
 
 
@@ -250,7 +245,7 @@ Test('#Errors',[
 	new RangeError("Range Error-message"),//RangeError
 	new EvalError("Eval Error-message")//EvalError
 ]);
-//all: typekind: error typeof is object ..isPrimitive? true
+//all: typekind: error typeof is object ..isPrimitive? false
 
 
 
@@ -260,8 +255,6 @@ Test('#Objects',[
 ]);
 //null, typekind: null typeof is object ..isPrimitive? true
 //other: typekind: object typeof is object ..isPrimitive? false
-
-
 
 Test('#Objects-Obj',[
 	new Object(),new Object(undefined),new Object(Empty_obj),new Object(Simple_obj),//Object
@@ -279,8 +272,7 @@ typekind: boolean typeof is object ..isPrimitive? true
 
 
 Test('#Array',[Empty_arr,Simple_arr,Complex_arr]);//Array[0],Array[3],Array[2]
-//all: typekind: array typeof is object ..isPrimitive? true
-
+//all: typekind: array typeof is object ..isPrimitive? false
 
 Test('#Array-Obj',[
 	new Array(),new Array(0),//Array[0]
@@ -288,23 +280,26 @@ Test('#Array-Obj',[
 	new Array(""),new Array(undefined),new Array(false),new Array(1),new Array(true),//Array[1]
 	new Array(Empty_arr),new Array(Simple_arr)//Array[1]
 ]);
-//all: typekind: array typeof is object ..isPrimitive? true
+//all: typekind: array typeof is object ..isPrimitive? false
+
 
 
 Test('#XMLHttpRequest',[new XMLHttpRequest()]);
-//typekind: xmlhttprequest typeof is object ..isPrimitive? true
+//typekind: xmlhttprequest typeof is object ..isPrimitive? false
+
+
 
 Test('#DOM',[window,document,document.body,document.createElement('a')]);
 /*
-typekind: global typeof is object ..isPrimitive? true
-typekind: htmldocument typeof is object ..isPrimitive? true
-typekind: htmlbodyelement typeof is object ..isPrimitive? true
-typekind: htmlanchorelement typeof is object ..isPrimitive? true
+typekind: global typeof is object ..isPrimitive? false
+typekind: htmldocument typeof is object ..isPrimitive? false
+typekind: htmlbodyelement typeof is object ..isPrimitive? false
+typekind: htmlanchorelement typeof is object ..isPrimitive? false
 */
 
 
 
 
 
-//
+//=========================
 console.debug(typesfound);
